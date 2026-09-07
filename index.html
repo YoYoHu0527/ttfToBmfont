@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#171a1d" />
+    <title>TTF to BMFont</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>TTF to BMFont</h1>
+        <p>浏览器端位图字体生成器</p>
+      </div>
+      <span class="privacy-mark">本地处理</span>
+    </header>
+
+    <main>
+      <section class="workspace" aria-label="字体生成设置">
+        <div class="source-panel">
+          <label class="file-drop" id="fileDrop" for="fontFile">
+            <input id="fontFile" type="file" accept=".ttf,.otf,font/ttf,font/otf" />
+            <strong id="fileName">选择或拖入 TTF / OTF</strong>
+            <span id="fontMeta">字体文件不会上传</span>
+          </label>
+
+          <label class="field field-wide">
+            <span>字符集</span>
+            <textarea id="characters" rows="4" spellcheck="false">0123456789+-\*/%xXKMB,.!?:</textarea>
+            <small id="characterCount">26 个字符（已去重）</small>
+          </label>
+
+          <div class="settings-grid">
+            <label class="field">
+              <span>输出名称</span>
+              <input id="outputName" value="chipFont" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>字号</span>
+              <input id="fontSize" type="number" min="4" max="256" value="60" />
+            </label>
+            <label class="field">
+              <span>描边宽度</span>
+              <input id="outlineWidth" type="number" min="0" max="32" value="2" />
+            </label>
+            <label class="field">
+              <span>字形留白</span>
+              <input id="glyphPadding" type="number" min="0" max="32" value="2" />
+            </label>
+            <label class="field">
+              <span>图集间距</span>
+              <input id="atlasPadding" type="number" min="0" max="32" value="2" />
+            </label>
+            <label class="field">
+              <span>图集宽度</span>
+              <select id="atlasWidth">
+                <option value="256">256</option>
+                <option value="512" selected>512</option>
+                <option value="1024">1024</option>
+                <option value="2048">2048</option>
+                <option value="4096">4096</option>
+              </select>
+            </label>
+            <label class="field color-field">
+              <span>文字颜色</span>
+              <input id="fillColor" type="color" value="#ffffff" />
+              <output id="fillColorValue">#FFFFFF</output>
+            </label>
+            <label class="field color-field">
+              <span>描边颜色</span>
+              <input id="outlineColor" type="color" value="#000000" />
+              <output id="outlineColorValue">#000000</output>
+            </label>
+          </div>
+
+          <label class="check-field">
+            <input id="includeKerning" type="checkbox" checked />
+            <span>写入字体字距</span>
+          </label>
+
+          <button class="primary-button" id="generateButton" type="button" disabled>
+            生成 BMFont
+          </button>
+          <p class="status" id="status" role="status">请先选择字体文件</p>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-toolbar">
+            <div>
+              <h2>图集预览</h2>
+              <p id="atlasStats">尚未生成</p>
+            </div>
+            <div class="download-actions">
+              <button id="downloadPng" type="button" disabled>PNG</button>
+              <button id="downloadFnt" type="button" disabled>FNT</button>
+              <button id="downloadZip" type="button" disabled>下载 ZIP</button>
+            </div>
+          </div>
+          <div class="canvas-stage" id="canvasStage">
+            <p id="emptyPreview">生成后在此检查实际字形</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
