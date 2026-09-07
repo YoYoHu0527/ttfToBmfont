@@ -7,6 +7,7 @@ import {
   normalizeCharacters,
   parseFont,
 } from './bmfont.js';
+import { loadFontFromDb, loadSettings, saveFontToDb, saveSettings } from './storage.js';
 import './style.css';
 
 const elements = Object.fromEntries(
@@ -20,6 +21,7 @@ const elements = Object.fromEntries(
     'outputName',
     'fontSize',
     'outlineWidth',
+    'outlineEnabled',
     'glyphPadding',
     'atlasPadding',
     'atlasWidth',
@@ -27,6 +29,12 @@ const elements = Object.fromEntries(
     'outlineColor',
     'fillColorValue',
     'outlineColorValue',
+    'shadowOffsetX',
+    'shadowOffsetY',
+    'shadowBlur',
+    'shadowColor',
+    'shadowColorValue',
+    'shadowEnabled',
     'includeKerning',
     'generateButton',
     'status',
@@ -61,7 +69,7 @@ function sanitizeOutputName(value) {
   return value.trim().replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_') || 'bitmapFont';
 }
 
-async function loadFontFile(file) {
+async function loadFontFile(file, { autoGenerate = true } = {}) {
   if (!file) return;
   const extension = file.name.split('.').pop()?.toLowerCase();
   if (!['ttf', 'otf'].includes(extension)) {
@@ -82,6 +90,8 @@ async function loadFontFile(file) {
     elements.generateButton.disabled = false;
     resetDownloads();
     setStatus('字体已就绪', 'success');
+    saveFontToDb(file);
+    if (autoGenerate) generate();
   } catch (error) {
     loadedFont = null;
     sourceFile = null;
@@ -104,12 +114,19 @@ function readOptions() {
   return {
     outputName,
     fontSize: readNumber(elements.fontSize, 4, 256, '字号'),
-    outlineWidth: readNumber(elements.outlineWidth, 0, 32, '描边宽度'),
+    outlineWidth: elements.outlineEnabled.checked
+      ? readNumber(elements.outlineWidth, 0, 32, '描边宽度')
+      : 0,
     glyphPadding: readNumber(elements.glyphPadding, 0, 32, '字形留白'),
     atlasPadding: readNumber(elements.atlasPadding, 0, 32, '图集间距'),
     atlasWidth: Number(elements.atlasWidth.value),
     fillColor: elements.fillColor.value,
     outlineColor: elements.outlineColor.value,
+    shadowEnabled: elements.shadowEnabled.checked,
+    shadowOffsetX: readNumber(elements.shadowOffsetX, -32, 32, '阴影偏移 X'),
+    shadowOffsetY: readNumber(elements.shadowOffsetY, -32, 32, '阴影偏移 Y'),
+    shadowBlur: readNumber(elements.shadowBlur, 0, 32, '阴影模糊'),
+    shadowColor: elements.shadowColor.value,
     includeKerning: elements.includeKerning.checked,
   };
 }
@@ -119,6 +136,84 @@ function resetDownloads() {
     button.disabled = true;
   }
   elements.atlasStats.textContent = '尚未生成';
+}
+
+function updateShadowFields() {
+  const disabled = !elements.shadowEnabled.checked;
+  for (const id of ['shadowOffsetX', 'shadowOffsetY', 'shadowBlur', 'shadowColor']) {
+    elements[id].disabled = disabled;
+  }
+}
+
+function updateOutlineFields() {
+  const disabled = !elements.outlineEnabled.checked;
+  for (const id of ['outlineWidth', 'outlineColor']) {
+    elements[id].disabled = disabled;
+  }
+}
+
+function collectSettings() {
+  return {
+    outputName: elements.outputName.value,
+    characters: elements.characters.value,
+    fontSize: elements.fontSize.value,
+    outlineWidth: elements.outlineWidth.value,
+    outlineEnabled: elements.outlineEnabled.checked,
+    glyphPadding: elements.glyphPadding.value,
+    atlasPadding: elements.atlasPadding.value,
+    atlasWidth: elements.atlasWidth.value,
+    fillColor: elements.fillColor.value,
+    outlineColor: elements.outlineColor.value,
+    shadowOffsetX: elements.shadowOffsetX.value,
+    shadowOffsetY: elements.shadowOffsetY.value,
+    shadowBlur: elements.shadowBlur.value,
+    shadowColor: elements.shadowColor.value,
+    shadowEnabled: elements.shadowEnabled.checked,
+    includeKerning: elements.includeKerning.checked,
+  };
+}
+
+function applySettings(settings) {
+  elements.outputName.value = settings.outputName ?? 'bitmapFont';
+  elements.characters.value = settings.characters ?? '';
+  elements.fontSize.value = settings.fontSize ?? 60;
+  elements.outlineWidth.value = settings.outlineWidth ?? 2;
+  elements.outlineEnabled.checked = settings.outlineEnabled ?? true;
+  elements.glyphPadding.value = settings.glyphPadding ?? 2;
+  elements.atlasPadding.value = settings.atlasPadding ?? 2;
+  elements.atlasWidth.value = settings.atlasWidth ?? '512';
+  elements.fillColor.value = settings.fillColor ?? '#ffffff';
+  elements.outlineColor.value = settings.outlineColor ?? '#000000';
+  elements.shadowOffsetX.value = settings.shadowOffsetX ?? 2;
+  elements.shadowOffsetY.value = settings.shadowOffsetY ?? 2;
+  elements.shadowBlur.value = settings.shadowBlur ?? 0;
+  elements.shadowColor.value = settings.shadowColor ?? '#000000';
+  elements.shadowEnabled.checked = settings.shadowEnabled ?? false;
+  elements.includeKerning.checked = settings.includeKerning ?? true;
+  updateCharacterCount();
+  updateColorValue(elements.fillColor, elements.fillColorValue);
+  updateColorValue(elements.outlineColor, elements.outlineColorValue);
+  updateColorValue(elements.shadowColor, elements.shadowColorValue);
+  updateShadowFields();
+  updateOutlineFields();
+}
+
+function saveCurrentSettings() {
+  saveSettings(collectSettings());
+}
+
+async function restoreState() {
+  const settings = loadSettings();
+  const fontFile = await loadFontFromDb();
+  if (fontFile) {
+    await loadFontFile(fontFile, { autoGenerate: false });
+  }
+  if (settings) {
+    applySettings(settings);
+  }
+  if (loadedFont) {
+    generate();
+  }
 }
 
 function showGenerated(result) {
@@ -188,6 +283,11 @@ elements.fillColor.addEventListener('input', () =>
 elements.outlineColor.addEventListener('input', () =>
   updateColorValue(elements.outlineColor, elements.outlineColorValue),
 );
+elements.outlineEnabled.addEventListener('change', updateOutlineFields);
+elements.shadowColor.addEventListener('input', () =>
+  updateColorValue(elements.shadowColor, elements.shadowColorValue),
+);
+elements.shadowEnabled.addEventListener('change', updateShadowFields);
 elements.generateButton.addEventListener('click', generate);
 
 for (const eventName of ['dragenter', 'dragover']) {
@@ -221,6 +321,45 @@ elements.downloadZip.addEventListener('click', async () => {
   downloadBlob(new Blob([archive], { type: 'application/zip' }), `${name}.zip`);
 });
 
+let generateTimer = null;
+
+function scheduleGenerate() {
+  clearTimeout(generateTimer);
+  generateTimer = setTimeout(generate, 300);
+}
+
+function handleSettingChange() {
+  saveCurrentSettings();
+  scheduleGenerate();
+}
+
+const settingIds = [
+  'characters',
+  'outputName',
+  'fontSize',
+  'outlineWidth',
+  'outlineEnabled',
+  'glyphPadding',
+  'atlasPadding',
+  'atlasWidth',
+  'fillColor',
+  'outlineColor',
+  'shadowOffsetX',
+  'shadowOffsetY',
+  'shadowBlur',
+  'shadowColor',
+  'shadowEnabled',
+  'includeKerning',
+];
+for (const id of settingIds) {
+  elements[id].addEventListener('input', handleSettingChange);
+  elements[id].addEventListener('change', handleSettingChange);
+}
+
 updateCharacterCount();
 updateColorValue(elements.fillColor, elements.fillColorValue);
 updateColorValue(elements.outlineColor, elements.outlineColorValue);
+updateColorValue(elements.shadowColor, elements.shadowColorValue);
+updateShadowFields();
+updateOutlineFields();
+restoreState();

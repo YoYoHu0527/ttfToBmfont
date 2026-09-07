@@ -125,6 +125,13 @@ main {
   font-size: 12px;
 }
 
+.storage-note {
+  margin: 10px 0 0;
+  color: #7b848b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .field {
   min-width: 0;
   display: flex;
@@ -245,6 +252,12 @@ select:focus {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
+}
+
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .status {
