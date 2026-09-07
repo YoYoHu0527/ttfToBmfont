@@ -242,22 +242,34 @@ function rasterizeGlyph(font, char, options, base) {
 
   if (hasShadow) {
     const shadowPath = glyph.getPath(-logicalLeft, -logicalTop, fontSize);
-    drawPath(context, shadowPath);
     context.shadowColor = shadowColor;
     context.shadowOffsetX = shadowOffsetX;
     context.shadowOffsetY = shadowOffsetY;
     context.shadowBlur = shadowBlur;
-    context.fillStyle = fillColor;
-    context.fill();
+    // 用与主层一致的「膨胀描边 + 本体」形状生成阴影，
+    // 让阴影覆盖到描边外沿（旧实现只对字形 fill 取影，大描边时阴影会被
+    // 主层完全盖住；而早期用 stroke 取影又会在尖角/凹口处产生尖刺状凸起）。
     if (outlineWidth > 0) {
-      context.strokeStyle = outlineColor;
-      context.lineWidth = outlineWidth * 2;
-      context.stroke();
+      drawGlyphShape(context, shadowPath, fillColor, outlineColor, outlineWidth);
+    } else {
+      drawPath(context, shadowPath);
+      context.fillStyle = fillColor;
+      context.fill();
     }
     context.shadowColor = 'transparent';
     context.shadowOffsetX = 0;
     context.shadowOffsetY = 0;
     context.shadowBlur = 0;
+    // 清除形状本体（略放大 1px 以覆盖抗锯齿边缘），只保留阴影层
+    context.globalCompositeOperation = 'destination-out';
+    if (outlineWidth > 0) {
+      drawGlyphShape(context, shadowPath, '#000000', '#000000', outlineWidth + 1);
+    } else {
+      drawPath(context, shadowPath);
+      context.fillStyle = '#000000';
+      context.fill();
+    }
+    context.globalCompositeOperation = 'source-over';
   }
 
   if (outlineWidth > 0) {
