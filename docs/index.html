@@ -1,137 +1,192 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#171a1d" />
-    <title>TTF to BMFont</title>
-    <script type="module" crossorigin src="./assets/index-DXBTK9qQ.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CCpysJaX.css">
-  </head>
-  <body>
-    <header class="app-header">
-      <div>
-        <h1>TTF to BMFont</h1>
-        <p>浏览器端位图字体生成器</p>
-      </div>
-      <span class="privacy-mark">本地处理</span>
-    </header>
 
-    <main>
-      <section class="workspace" aria-label="字体生成设置">
-        <div class="source-panel">
-          <label class="file-drop" id="fileDrop" for="fontFile">
-            <input id="fontFile" type="file" accept=".ttf,.otf,font/ttf,font/otf" />
-            <strong id="fileName">选择或拖入 TTF / OTF</strong>
-            <span id="fontMeta">字体文件不会上传</span>
-          </label>
-          <p class="storage-note" id="storageNote">
-            字体会复制保存到浏览器本地，源文件修改不会自动同步；重新选择字体即可更新
-          </p>
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="theme-color" content="#171a1d" />
+	<meta name="description" content="浏览器本地素材工具箱，支持 TTF 转 BMFont 和图片圆角处理。" />
+	<title>素材工具箱</title>
+  <script type="module" crossorigin src="./assets/index-CxEstOxe.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-g8R6kZr-.css">
+</head>
 
-          <label class="field field-wide">
-            <span>字符集</span>
-            <textarea id="characters" rows="4" spellcheck="false">0123456789+-\*/%xXKMB,.!?:</textarea>
-            <small id="characterCount">26 个字符（已去重）</small>
-          </label>
+<body>
+	<header class="app-header">
+		<div>
+			<h1>素材工具箱</h1>
+			<p>字体与图片处理</p>
+		</div>
+		<span class="privacy-mark">本地处理</span>
+	</header>
 
-          <div class="settings-grid">
-            <label class="field">
-              <span>输出名称</span>
-              <input id="outputName" value="chipFont" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span>字号</span>
-              <input id="fontSize" type="number" min="4" max="256" step="1" value="60" />
-            </label>
-            <label class="field">
-              <span>描边宽度</span>
-              <input id="outlineWidth" type="number" min="0" max="32" step="1" value="2" />
-            </label>
-            <label class="field">
-              <span>字形留白</span>
-              <input id="glyphPadding" type="number" min="0" max="32" step="1" value="2" />
-            </label>
-            <label class="field">
-              <span>图集间距</span>
-              <input id="atlasPadding" type="number" min="0" max="32" step="1" value="2" />
-            </label>
-            <label class="field">
-              <span>图集宽度</span>
-              <select id="atlasWidth">
-                <option value="256">256</option>
-                <option value="512" selected>512</option>
-                <option value="1024">1024</option>
-                <option value="2048">2048</option>
-                <option value="4096">4096</option>
-              </select>
-            </label>
-            <label class="field color-field">
-              <span>文字颜色</span>
-              <input id="fillColor" type="color" value="#ffffff" />
-              <output id="fillColorValue">#FFFFFF</output>
-            </label>
-            <label class="field color-field">
-              <span>描边颜色</span>
-              <input id="outlineColor" type="color" value="#000000" />
-              <output id="outlineColorValue">#000000</output>
-            </label>
-            <label class="field">
-              <span>阴影偏移 X</span>
-              <input id="shadowOffsetX" type="number" min="-32" max="32" step="1" value="2" />
-            </label>
-            <label class="field">
-              <span>阴影偏移 Y</span>
-              <input id="shadowOffsetY" type="number" min="-32" max="32" step="1" value="2" />
-            </label>
-            <label class="field">
-              <span>阴影模糊</span>
-              <input id="shadowBlur" type="number" min="0" max="32" step="1" value="0" />
-            </label>
-            <label class="field color-field">
-              <span>阴影颜色</span>
-              <input id="shadowColor" type="color" value="#000000" />
-              <output id="shadowColorValue">#000000</output>
-            </label>
-          </div>
+	<nav class="tool-nav" aria-label="工具选择">
+		<a href="#bmfont" data-tool-link="bmfont" aria-controls="bmfontTool" aria-current="page">TTF 转 BMFont</a>
+		<a href="#image-rounding" data-tool-link="image-rounding" aria-controls="imageRoundingTool">图片圆角</a>
+		<a href="https://yoyohu0527.github.io/YoYoHu/" target="_blank" rel="noopener noreferrer">YoYoHu主页</a>
+		<a href="https://imagestool.com/zh_CN/compress-images" target="_blank" rel="noopener noreferrer">图片压缩</a>
+	</nav>
 
-          <label class="check-field">
-            <input id="outlineEnabled" type="checkbox" checked />
-            <span>启用描边</span>
-          </label>
-          <label class="check-field">
-            <input id="includeKerning" type="checkbox" checked />
-            <span>写入字体字距</span>
-          </label>
-          <label class="check-field">
-            <input id="shadowEnabled" type="checkbox" />
-            <span>启用阴影</span>
-          </label>
+	<main>
+		<section class="workspace" id="bmfontTool" data-tool-panel="bmfont" aria-label="字体生成设置">
+			<div class="source-panel">
+				<label class="file-drop" id="fileDrop" for="fontFile">
+					<input id="fontFile" type="file" accept=".ttf,.otf,font/ttf,font/otf" />
+					<strong id="fileName">选择或拖入 TTF / OTF</strong>
+					<span id="fontMeta">字体文件不会上传</span>
+				</label>
+				<p class="storage-note" id="storageNote">
+					字体会复制保存到浏览器本地，源文件修改不会自动同步；重新选择字体即可更新
+				</p>
 
-          <button class="primary-button" id="generateButton" type="button" disabled>
-            刷新
-          </button>
-          <p class="status" id="status" role="status">请先选择字体文件</p>
-        </div>
+				<label class="field field-wide">
+					<span>字符集</span>
+					<textarea id="characters" rows="4" spellcheck="false">0123456789+-\*/%xXKMB,.!?:</textarea>
+					<small id="characterCount">26 个字符（已去重）</small>
+				</label>
 
-        <div class="preview-panel">
-          <div class="preview-toolbar">
-            <div>
-              <h2>图集预览</h2>
-              <p id="atlasStats">尚未生成</p>
-            </div>
-            <div class="download-actions">
-              <button id="downloadPng" type="button" disabled>PNG</button>
-              <button id="downloadFnt" type="button" disabled>FNT</button>
-              <button id="downloadZip" type="button" disabled>下载 ZIP</button>
-            </div>
-          </div>
-          <div class="canvas-stage" id="canvasStage">
-            <p id="emptyPreview">生成后在此检查实际字形</p>
-          </div>
-        </div>
-      </section>
-    </main>
+				<div class="settings-grid">
+					<label class="field">
+						<span>输出名称</span>
+						<input id="outputName" value="chipFont" autocomplete="off" />
+					</label>
+					<label class="field">
+						<span>字号</span>
+						<input id="fontSize" type="number" min="4" max="256" step="1" value="60" />
+					</label>
+					<label class="field">
+						<span>描边宽度</span>
+						<input id="outlineWidth" type="number" min="0" max="32" step="1" value="2" />
+					</label>
+					<label class="field">
+						<span>字形留白</span>
+						<input id="glyphPadding" type="number" min="0" max="32" step="1" value="2" />
+					</label>
+					<label class="field">
+						<span>图集间距</span>
+						<input id="atlasPadding" type="number" min="0" max="32" step="1" value="2" />
+					</label>
+					<label class="field">
+						<span>图集宽度</span>
+						<select id="atlasWidth">
+							<option value="256">256</option>
+							<option value="512" selected>512</option>
+							<option value="1024">1024</option>
+							<option value="2048">2048</option>
+							<option value="4096">4096</option>
+						</select>
+					</label>
+					<label class="field color-field">
+						<span>文字颜色</span>
+						<input id="fillColor" type="color" value="#ffffff" />
+						<output id="fillColorValue">#FFFFFF</output>
+					</label>
+					<label class="field color-field">
+						<span>描边颜色</span>
+						<input id="outlineColor" type="color" value="#000000" />
+						<output id="outlineColorValue">#000000</output>
+					</label>
+					<label class="field">
+						<span>阴影偏移 X</span>
+						<input id="shadowOffsetX" type="number" min="-32" max="32" step="1" value="2" />
+					</label>
+					<label class="field">
+						<span>阴影偏移 Y</span>
+						<input id="shadowOffsetY" type="number" min="-32" max="32" step="1" value="2" />
+					</label>
+					<label class="field">
+						<span>阴影模糊</span>
+						<input id="shadowBlur" type="number" min="0" max="32" step="1" value="0" />
+					</label>
+					<label class="field color-field">
+						<span>阴影颜色</span>
+						<input id="shadowColor" type="color" value="#000000" />
+						<output id="shadowColorValue">#000000</output>
+					</label>
+				</div>
 
-  </body>
+				<label class="check-field">
+					<input id="outlineEnabled" type="checkbox" checked />
+					<span>启用描边</span>
+				</label>
+				<label class="check-field">
+					<input id="includeKerning" type="checkbox" checked />
+					<span>写入字体字距</span>
+				</label>
+				<label class="check-field">
+					<input id="shadowEnabled" type="checkbox" />
+					<span>启用阴影</span>
+				</label>
+
+				<button class="primary-button" id="generateButton" type="button" disabled>
+					刷新
+				</button>
+				<p class="status" id="status" role="status">请先选择字体文件</p>
+			</div>
+
+			<div class="preview-panel">
+				<div class="preview-toolbar">
+					<div>
+						<h2>图集预览</h2>
+						<p id="atlasStats">尚未生成</p>
+					</div>
+					<div class="download-actions">
+						<button id="downloadPng" type="button" disabled>PNG</button>
+						<button id="downloadFnt" type="button" disabled>FNT</button>
+						<button id="downloadZip" type="button" disabled>下载 ZIP</button>
+					</div>
+				</div>
+				<div class="canvas-stage" id="canvasStage">
+					<p id="emptyPreview">生成后在此检查实际字形</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="workspace image-workspace" id="imageRoundingTool" data-tool-panel="image-rounding"
+			aria-label="图片圆角设置" hidden>
+			<div class="source-panel">
+				<label class="file-drop" id="imageDrop" for="imageFile">
+					<input id="imageFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+					<strong id="imageFileName">选择或拖入图片</strong>
+					<span id="imageMeta">支持 PNG、JPG、WebP</span>
+				</label>
+
+				<fieldset class="image-settings" id="imageSettings" disabled>
+					<legend>圆角半径</legend>
+					<div class="radius-controls">
+						<input id="imageRadiusRange" type="range" min="0" max="512" step="1" value="32"
+							aria-label="圆角半径滑块" />
+						<label class="radius-value">
+							<input id="imageRadiusNumber" type="number" min="0" max="512" step="1" value="32"
+								aria-label="圆角半径像素" />
+							<span>px</span>
+						</label>
+					</div>
+					<p class="storage-note" id="imageRadiusHint">四角统一调整，最大半径为图片短边的一半</p>
+				</fieldset>
+
+				<p class="image-export-note">导出保留原始尺寸，圆角外区域透明，文件格式为 PNG。</p>
+				<p class="status" id="imageStatus" role="status">请先选择图片</p>
+			</div>
+
+			<div class="preview-panel">
+				<div class="preview-toolbar">
+					<div>
+						<h2>圆角预览</h2>
+						<p id="imageStats">尚未载入图片</p>
+					</div>
+					<div class="download-actions">
+						<button id="downloadRoundedImage" type="button" disabled>下载 PNG</button>
+					</div>
+				</div>
+				<div class="canvas-stage image-stage">
+					<p id="imageEmptyPreview">选择图片后在此预览圆角效果</p>
+					<canvas id="imageCanvas" aria-label="圆角图片预览" hidden></canvas>
+				</div>
+			</div>
+		</section>
+	</main>
+
+</body>
+
 </html>

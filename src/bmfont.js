@@ -456,11 +456,4 @@ export function generateBmFont(font, characters, options) {
   };
 }
 
-export function canvasToBlob(canvas) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error('PNG 编码失败'));
-    }, 'image/png');
-  });
-}
+export { canvasToBlob } from './download.js';
